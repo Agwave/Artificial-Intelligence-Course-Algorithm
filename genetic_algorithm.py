@@ -53,7 +53,7 @@ def get_route_fitness_value(route, dist_matrix):
     dist_sum = 0
     for i in range(len(route)-1):
         dist_sum += dist_matrix[route[i], route[i+1]]
-    dist_sum += dist_matrix[route[-1], route[0]]
+    dist_sum += dist_matrix[route[len(route)-1], route[0]]
     return 1/dist_sum
 
 def get_all_routes_fitness_value(routes, dist_matrix):
