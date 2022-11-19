@@ -2,6 +2,7 @@ import numpy as np
 import math
 import time
 
+
 def load_data(data_path):
     """
     导入数据，得到城市坐标信息
@@ -17,20 +18,22 @@ def load_data(data_path):
             cities.append((x, y))
     return cities
 
+
 def get_cities_distance(cities):
     """
     计算两两城市的距离
     :param cities: 所有城市的坐标 二维 list
     :return: 城市距离矩阵 numpy数组
     """
-    dist_matrix = np.zeros((127, 127))
+    dist_matrix = np.zeros((len(cities), len(cities)))
     n_cities = len(cities)
-    for i in range(n_cities-1):
-        for j in range(i+1, n_cities):
+    for i in range(n_cities - 1):
+        for j in range(i + 1, n_cities):
             dist = get_two_cities_dist(cities[i], cities[j])
             dist_matrix[i, j] = dist
             dist_matrix[j, i] = dist
     return dist_matrix
+
 
 def get_two_cities_dist(city1, city2):
     """
@@ -41,7 +44,8 @@ def get_two_cities_dist(city1, city2):
     """
     x_1, y_1 = city1
     x_2, y_2 = city2
-    return math.sqrt(math.pow(x_1-x_2, 2) + math.pow(y_1-y_2, 2))
+    return math.sqrt(math.pow(x_1 - x_2, 2) + math.pow(y_1 - y_2, 2))
+
 
 def get_route_fitness_value(route, dist_matrix):
     """
@@ -51,10 +55,11 @@ def get_route_fitness_value(route, dist_matrix):
     :return: 路线的适应度 double
     """
     dist_sum = 0
-    for i in range(len(route)-1):
-        dist_sum += dist_matrix[route[i], route[i+1]]
-    dist_sum += dist_matrix[route[len(route)-1], route[0]]
-    return 1/dist_sum
+    for i in range(len(route) - 1):
+        dist_sum += dist_matrix[route[i], route[i + 1]]
+    dist_sum += dist_matrix[route[len(route) - 1], route[0]]
+    return 1 / dist_sum
+
 
 def get_all_routes_fitness_value(routes, dist_matrix):
     """
@@ -69,6 +74,7 @@ def get_all_routes_fitness_value(routes, dist_matrix):
         fitness_values[i] = f_value
     return fitness_values
 
+
 def init_route(n_route, n_cities):
     """
     随机初始化路线
@@ -80,6 +86,7 @@ def init_route(n_route, n_cities):
     for i in range(n_route):
         routes[i] = np.random.choice(range(n_cities), size=n_cities, replace=False)
     return routes
+
 
 def selection(routes, fitness_values):
     """
@@ -96,6 +103,7 @@ def selection(routes, fitness_values):
         selected_routes[i] = routes[choice]
     return selected_routes
 
+
 def crossover(routes, n_cities):
     """
     交叉操作
@@ -107,14 +115,15 @@ def crossover(routes, n_cities):
         r1_new, r2_new = np.zeros(n_cities), np.zeros(n_cities)
         seg_point = np.random.randint(0, n_cities)
         cross_len = n_cities - seg_point
-        r1, r2 = routes[i], routes[i+1]
+        r1, r2 = routes[i], routes[i + 1]
         r1_cross, r2_cross = r2[seg_point:], r1[seg_point:]
-        r1_non_cross = r1[np.in1d(r1, r1_cross)==False]
-        r2_non_cross = r2[np.in1d(r2, r2_cross)==False]
+        r1_non_cross = r1[np.in1d(r1, r1_cross, invert=True)]
+        r2_non_cross = r2[np.in1d(r2, r2_cross, invert=True)]
         r1_new[:cross_len], r2_new[:cross_len] = r1_cross, r2_cross
         r1_new[cross_len:], r2_new[cross_len:] = r1_non_cross, r2_non_cross
-        routes[i], routes[i+1] = r1_new, r2_new
+        routes[i], routes[i + 1] = r1_new, r2_new
     return routes
+
 
 def mutation(routes, n_cities):
     """
@@ -132,41 +141,42 @@ def mutation(routes, n_cities):
             routes[i, l], routes[i, r] = routes[i, r], routes[i, l]
     return routes
 
+
 if __name__ == '__main__':
     start = time.time()
 
-    n_routes = 100 # 路线
-    epoch = 100000 # 迭代次数
+    n_routes_ = 100  # 路线
+    epoch = 100000  # 迭代次数
 
-    cities = load_data('./cities.txt') # 导入数据
-    dist_matrix = get_cities_distance(cities) # 计算城市距离矩阵
-    routes = init_route(n_routes, dist_matrix.shape[0]) # 初始化所有路线
-    fitness_values = get_all_routes_fitness_value(routes, dist_matrix) # 计算所有初始路线的适应度
-    best_index = fitness_values.argmax()
-    best_route, best_fitness = routes[best_index], fitness_values[best_index] # 保存最优路线及其适应度
+    cities_ = load_data('./cities.txt')  # 导入数据
+    dist_matrix_ = get_cities_distance(cities_)  # 计算城市距离矩阵
+    routes_ = init_route(n_routes_, dist_matrix_.shape[0])  # 初始化所有路线
+    fitness_values_ = get_all_routes_fitness_value(routes_, dist_matrix_)  # 计算所有初始路线的适应度
+    best_index = fitness_values_.argmax()
+    best_route, best_fitness = routes_[best_index], fitness_values_[best_index]  # 保存最优路线及其适应度
 
     # 开始迭代
     not_improve_time = 0
-    for i in range(epoch):
-        routes = selection(routes, fitness_values) # 选择
-        routes = crossover(routes, len(cities)) # 交叉
-        routes = mutation(routes, len(cities)) # 变异
-        fitness_values = get_all_routes_fitness_value(routes, dist_matrix)
-        best_route_index = fitness_values.argmax()
-        if fitness_values[best_route_index] > best_fitness:
+    for i_ in range(epoch):
+        routes_ = selection(routes_, fitness_values_)  # 选择
+        routes_ = crossover(routes_, len(cities_))  # 交叉
+        routes_ = mutation(routes_, len(cities_))  # 变异
+        fitness_values_ = get_all_routes_fitness_value(routes_, dist_matrix_)
+        best_route_index = fitness_values_.argmax()
+        if fitness_values_[best_route_index] > best_fitness:
             not_improve_time = 0
-            best_route, best_fitness = routes[best_route_index], fitness_values[best_route_index]  # 保存最优路线及其适应度
+            best_route, best_fitness = routes_[best_route_index], fitness_values_[best_route_index]  # 保存最优路线及其适应度
         else:
             not_improve_time += 1
-        if (i+1) % 200 == 0:
-            print('epoch: {}, 当前最优路线距离： {}'.format(i+1, 1/get_route_fitness_value(best_route, dist_matrix)))
+        if (i_ + 1) % 200 == 0:
+            print('epoch: {}, 当前最优路线距离： {}'.format(i_ + 1, 1 / get_route_fitness_value(best_route, dist_matrix_)))
         if not_improve_time >= 2000:
             print('连续2000次迭代都没有改变最优路线，结束迭代')
             break
 
     print('最优路线为：')
     print(best_route)
-    print('总距离为： {}'.format(1/get_route_fitness_value(best_route, dist_matrix)))
+    print('总距离为： {}'.format(1 / get_route_fitness_value(best_route, dist_matrix_)))
 
     end = time.time()
-    print('耗时: {}s'.format(end-start))
+    print('耗时: {}s'.format(end - start))
